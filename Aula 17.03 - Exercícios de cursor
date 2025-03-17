@@ -1,0 +1,79 @@
+CREATE TABLE PESSOA
+    (
+    id_pessoa integer,
+    nome varchar2(20),
+    cpf varchar2(14)
+    );
+
+CREATE TABLE CURSO
+    (
+    id_curso integer,
+    nome varchar2(20)
+    );
+
+CREATE TABLE MENSALIDADE
+    (
+    id_curso integer,
+    id_Pessoa integer,
+    valor number(5,2)
+    );
+
+Insert into Pessoa values(1,'Eliézio Mesquita','11109865424');
+    Insert into Pessoa values(2,'Maria Joaquina','93104465334');
+    Insert into Pessoa values(3,'José da Silva','14109835424');
+
+Insert into curso values(1,'Sistemas');
+    Insert into curso values(2,'Administração');
+    Insert into curso values(3,'Filosofia');
+
+Insert into mensalidade values(1,1,345.45);
+    Insert into mensalidade values(2,3,500);
+    Insert into mensalidade values(3,2,831.28);
+
+Alter table Pessoa add constraint ID_PESSOA_PK primary key (ID_PESSOA);
+
+Alter table Curso add constraint ID_CURSO_PK primary key (ID_CURSO);
+
+alter table Mensalidade add constraints ID_PESSOA_FK FOREIGN KEY(Id_Pessoa) references Pessoa(Id_Pessoa);
+    alter table Mensalidade add constraints ID_CURSO_FK FOREIGN KEY(Id_Curso) references Curso(Id_Curso);
+
+Alter table Pessoa add RG varchar2(14);
+Alter table Mensalidade add constraint ID_Mensalidade_PK primary key (ID_PESSOA, Id_Curso);
+
+-- Exercício 1: Utilizando o cursor, mostre as pessoas.
+declare
+cursor c_Pessoa is
+select nome
+from Pessoa;
+r_pessoa c_Pessoa%rowtype;
+
+Begin
+    open c_Pessoa;
+        loop
+        fetch c_Pessoa into r_Pessoa;
+        exit when c_Pessoa%notfound;
+        dbms_output.put_line (r_Pessoa.nome);
+        end loop;
+    close c_Pessoa;
+End;
+
+
+-- Exercício 2: Alterar o exercício 1 para mostrar a pessoa, o curso e o valor da mensalidade.
+Declare
+       cursor c_Pessoa_curso is
+       select pessoa.nome, curso.nome nomecurso, mensalidade.valor
+       from Pessoa, Curso, Mensalidade
+       where pessoa.id_pessoa=mensalidade.id_pessoa and curso.id_curso=mensalidade.id_curso
+       order by pessoa.nome, curso.nome, mensalidade.valor;
+       r_Pessoa_curso c_Pessoa_curso%rowtype;
+
+Begin
+    open c_Pessoa_curso;
+        loop
+        fetch c_Pessoa_curso into r_Pessoa_curso;
+        exit when c_Pessoa_curso%notfound;
+        dbms_output.put_line (r_Pessoa_curso.nome ||' '||r_Pessoa_curso.nomecurso ||' '||r_Pessoa_curso.valor);
+                                                        
+        end loop;
+    close c_Pessoa_curso;
+End;
