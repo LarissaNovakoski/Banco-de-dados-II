@@ -1,0 +1,154 @@
+Drop table cidade cascade constraints;
+drop table pessoa cascade constraints;
+
+
+CREATE TABLE Cidade (
+  Cod_Cidade INTEGER   NOT NULL ,
+  Nome_Cidade VARCHAR(40)   NOT NULL ,
+  UF VARCHAR(2)    ,
+  País VARCHAR(75)   NOT NULL   ,
+PRIMARY KEY(Cod_Cidade));
+
+
+
+CREATE TABLE PESSOA (
+  id_PESSOA NUMERIC(10)   NOT NULL ,
+  Cod_Cidade INTEGER   NOT NULL ,
+  CGC_CPF VARCHAR(10)   NOT NULL ,
+  NOME VARCHAR(150)   NOT NULL ,
+  ENDERECO VARCHAR(120)    ,
+  BAIRRO VARCHAR(50)    ,
+  CEP VARCHAR(12)    ,
+  PESSOA_FIS_JUR VARCHAR(1)    ,
+PRIMARY KEY(id_PESSOA)  ,
+  FOREIGN KEY(Cod_Cidade)
+    REFERENCES Cidade(Cod_Cidade));
+
+
+Insert into CIDADE (COD_CIDADE,NOME_CIDADE,UF,PAÍS) values ('1','Campo Bom','RS','Brasil');
+Insert into CIDADE (COD_CIDADE,NOME_CIDADE,UF,PAÍS) values ('2','São Leopoldo','RS','Brasil');
+Insert into CIDADE (COD_CIDADE,NOME_CIDADE,UF,PAÍS) values ('3','São Paulo','SP','Brasil');
+
+
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('1','1','888888','João Da Silva','Nova Santana',null,'9999999','F');
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('2','1','111111','Maria de Lourdes','Nova Brentano',null,'9999999','J');
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('3','2','222222','João Augusto da Luz','Maralto',null,'7777777','F');
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('4','2','2234567','Aquatema da Silva','Nova Hartz',null,'66666666','F');
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('5','3','55555555','São Paulo','São Bernardo',null,'55555555','F');
+
+DECLARE
+   CURSOR c_cidade is
+      select cod_cidade, nome_cidade from cidade;
+      r_cidade c_cidade%rowtype;
+
+      cursor c_pessoa is
+        select id_pessoa, nome nome_pessoa from PESSOA
+        where  pessoa.cod_cidade = r_cidade.cod_cidade;
+
+        r_pessoa c_pessoa%rowtype;
+
+BEGIN
+    open c_cidade;
+        loop
+            FETCH c_cidade into r_cidade;
+            exit when c_cidade%notfound;
+            dbms_output.put_line(r_cidade.nome_cidade);
+            -------------------------------------
+            -- loop encadeado
+            open c_pessoa;
+            loop
+                FETCH c_pessoa into r_pessoa;
+                exit when c_pessoa%notfound;
+                dbms_output.put_line(r_pessoa.nome_pessoa);
+            end loop;
+            close c_pessoa;
+            -- fim loop encadeado
+            ---------------------------------------
+       end loop;
+    close c_cidade;
+
+end;
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+create table CentroCusto
+(idCentro Number(7),
+ Descricao Varchar2(100),
+ Constraint CENTROCUSTO_PK
+ Primary key(idCentro));
+ 
+create table Produto
+(IdProduto Number(7),
+Descricao Varchar2(100),
+UnidMed Varchar2(4),
+ValorUnit Number(10),
+ProdAtivoInativo Varchar2(1),
+Observ Varchar2(100),  
+idCentro Number(7),
+Constraint PRODUTO_PK
+Primary key(IdProduto),
+Constraint Produto_Centro_FK Foreign key(idCentro) references CentroCusto(idCentro));
+
+
+
+create table Estoque
+(idEstoque Number(7),
+ Descricao Varchar2(100),
+ Constraint ESTOQUE_PK
+ Primary key(idEstoque));
+
+create table Linhas
+(idLinhas Number(7),
+ idEstoque Number(7),
+ IdProduto Number(7),
+ QtdEstoque Number(7),
+ QtdMinEstoque Number(7),
+ Constraint LINHAS_PK
+ Primary key(idLinhas),
+ Constraint Linhas_Estoque_FK Foreign key(idEstoque) references Estoque(idEstoque),
+ Constraint Linhas_Produto_FK Foreign key(idProduto) references Produto(idProduto));  
+
+insert into Estoque values(1,'Estoque NH');
+insert into Estoque values(2,'Estoque SL');
+
+insert into CentroCusto values(1,'Centro 0097');
+insert into CentroCusto values(2,'Centro 0046');
+
+--Exercício 1
+insert into CentroCusto values(3,'Rio de Janeiro');
+insert into CentroCusto values(4,'São Paulo');
+
+ insert into Linhas values(1, 1, 5, 78, 10);
+insert into Linhas values(3, 1, 4, 20, 8);
+insert into Linhas values(2, 1, 3, 10, 5);
+insert into Linhas values(4, 2, 2, 100, 10);
+insert into Linhas values(5, 2, 1, 9, 3);
+insert into Linhas values(6, 2, 9, 20, 5);
+insert into Linhas values(7, 2, 8, 15, 7);
+
+insert into Produto values(1,'Máquina de lavar', 'un', 2560, 'a', 'Eletrolux', 1);
+insert into Produto values(2,'mangueira', 'mt', 2, 'i', 'mangueira de aço', 1);
+insert into Produto values(3,'Guarda-Roupas', 'un', 1800, 'a', 'Madeira', 1);
+insert into Produto values(4,'Roda', 'un', 560, 'i', 'Aro 14', 1);
+insert into Produto values(5,'Pneu', 'un', 236, 'i', 'Elite', 2);
+insert into Produto values(6,'Soquete', 'un', 12, 'a', 'Vonder', 2);
+insert into Produto values(7,'Chave seta', 'un', 98, 'a', 'GM', 1);
+insert into Produto values(8,'Chave de boca', 'un', 19, 'i', 'Vonder', 2);
+insert into Produto values(9,'Alicate', 'un', 36, 'a', 'Gedore', 1);
+insert into Produto values(10,'Tesoura', 'un', 15, 'a', 'Aço', 2);
+
+-- Exercício 1 - Com um cursor, mostrar os centros de custos.
+declare
+	cursor c_centro is
+	select CentroCusto.idCentro, CentroCusto.descricao
+	From CentroCusto;
+	r_centro c_centro%rowtype;
+
+Begin
+	Open c_centro;
+        loop
+        fetch c_centro into r_centro;
+        exit when c_centro%notfound;
+        dbms_output.put_line (r_centro.descricao ||' '||r_centro.idCentro);
+        end loop;
+    close c_centro;
+End;
