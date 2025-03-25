@@ -1,0 +1,125 @@
+CREATE TABLE Cidade (
+  Cod_Cidade INTEGER   NOT NULL ,
+  Nome_Cidade VARCHAR(40)   NOT NULL ,
+  UF VARCHAR(2)    ,
+  País VARCHAR(75)   NOT NULL   ,
+PRIMARY KEY(Cod_Cidade));
+
+Insert into CIDADE (COD_CIDADE,NOME_CIDADE,UF,PAÍS) values ('1','Campo Bom','RS','Brasil');
+Insert into CIDADE (COD_CIDADE,NOME_CIDADE,UF,PAÍS) values ('2','São Leopoldo','RS','Brasil');
+Insert into CIDADE (COD_CIDADE,NOME_CIDADE,UF,PAÍS) values ('3','São Paulo','SP','Brasil');
+
+CREATE OR REPLACE FUNCTION FN_CIDADE (P_COD_CIDADE IN NUMBER) 
+    RETURN VARCHAR2 IS 
+--área para declarar variáveis e cursor
+CURSOR C_CIDADE IS
+SELECT NOME_CIDADE, UF
+FROM CIDADE WHERE COD_CIDADE=P_COD_CIDADE;
+R_CIDADE C_CIDADE%ROWTYPE;
+
+BEGIN
+--Corpo do programa
+OPEN C_CIDADE;
+FETCH C_CIDADE INTO R_CIDADE;
+if c_cidade%notfound THEN
+    return('Não encontrou!');
+end if;
+CLOSE C_CIDADE;
+
+RETURN (R_CIDADE.NOME_CIDADE||' '||r_CIDADE.UF);
+end;
+
+--Para executar a função
+select fn_cidade (2) from dual;
+
+-- EXERCÍCIO 1: Crie a tabela Pessoa e insira alguns registros (Aula anterior).
+-- Crie uma função que retorna o nome da pessoa e o nome da cidade. Passe como Parâmetro,
+-- o código da pessoa.
+CREATE TABLE PESSOA (
+  id_PESSOA NUMERIC(10)   NOT NULL ,
+  Cod_Cidade INTEGER   NOT NULL ,
+  CGC_CPF VARCHAR(10)   NOT NULL ,
+  NOME VARCHAR(150)   NOT NULL ,
+  ENDERECO VARCHAR(120)    ,
+  BAIRRO VARCHAR(50)    ,
+  CEP VARCHAR(12)    ,
+  PESSOA_FIS_JUR VARCHAR(1)    ,
+PRIMARY KEY(id_PESSOA)  ,
+  FOREIGN KEY(Cod_Cidade)
+    REFERENCES Cidade(Cod_Cidade));
+
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('1','1','888888','João Da Silva','Nova Santana',null,'9999999','F');
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('2','1','111111','Maria de Lourdes','Nova Brentano',null,'9999999','J');
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('3','2','222222','João Augusto da Luz','Maralto',null,'7777777','F');
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('4','2','2234567','Aquatema da Silva','Nova Hartz',null,'66666666','F');
+Insert into PESSOA (ID_PESSOA,COD_CIDADE,CGC_CPF,NOME,ENDERECO,BAIRRO,CEP,PESSOA_FIS_JUR) values ('5','3','55555555','São Paulo','São Bernardo',null,'55555555','F');
+
+Create or replace function fn_pessoa (p_id_pessoa in number)
+return varchar2 is
+cursor c_pessoa is
+select pessoa.id_pessoa, pessoa.nome, pessoa.Cod_Cidade, cidade.nome_cidade
+from Pessoa, Cidade where pessoa.cod_cidade = cidade.cod_cidade and pessoa.id_pessoa = p_id_pessoa;
+r_pessoa c_pessoa%rowtype;
+
+begin
+open c_pessoa;
+fetch c_pessoa into r_pessoa;
+if c_pessoa%notfound then
+    return ('Não encontrou!');
+end if;
+close c_pessoa;
+
+return (r_pessoa.nome||' '||r_pessoa.nome_cidade);
+end;
+
+--Para executar a função
+select fn_pessoa (-2) from dual;
+
+--EXERCÍCIO 2: Faça uma função que retorna quantas pessoas estão cadastradas. 
+--OBS: return NUMBER Função não tem parâmetro. Usar um apelido no count.
+
+Create or replace function fn_qnt_pessoa
+return varchar2 is
+cursor c_qnt_pessoa is
+select count(*) clientes from Pessoa;
+r_qnt_pessoa c_qnt_pessoa%rowtype;
+
+begin
+open c_qnt_pessoa;
+fetch c_qnt_pessoa into r_qnt_pessoa;
+if c_qnt_pessoa%notfound then
+    return ('Não encontrou!');
+end if;
+close c_qnt_pessoa;
+
+return (r_qnt_pessoa.clientes);
+end;
+--Para executar a função
+select fn_qnt_pessoa from dual;
+
+-- EXECÍCIO 3: Faça uma função que mostre o nome da cidade e quantas pessoas estão cadastradas nela.
+-- Passe como parâmetro o código da cidade.
+Create or replace function fn_cidade_clientes (p_cod_cidade in number)
+return varchar2 is
+cursor c_cidade_clientes is
+select count(*) quantidadecidade, cidade.nome_cidade, pessoa.cod_cidade
+from Cidade, pessoa where pessoa.cod_cidade=cidade.cod_cidade and cidade.cod_cidade=p_cod_cidade 
+group by cidade.nome_cidade, pessoa.cod_cidade; --tudo que estiver fora do count DEVE estar no group by;
+
+r_cidade_clientes c_cidade_clientes%rowtype;
+
+begin
+open c_cidade_clientes;
+fetch c_cidade_clientes into r_cidade_clientes;
+if c_cidade_clientes%notfound then
+return ('Não encontrou!');
+end if;
+close c_cidade_clientes;
+
+return (r_cidade_clientes.nome_cidade ||' '||r_cidade_clientes.quantidadecidade);
+end;
+
+--Para executar a função
+select fn_cidade_clientes (2) from dual; -- Mostra apenas a cidade do parâmetro "(?)"
+
+select cod_cidade, fn_cidade_clientes(cod_cidade) from cidade; -- mostrar todas as cidade e suas devidas quantidades
