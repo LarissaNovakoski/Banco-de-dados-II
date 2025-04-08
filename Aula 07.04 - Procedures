@@ -1,0 +1,211 @@
+-- PROCEDURES
+-- Procedures do banco de dados são utilizadas, normalmente, para realizar alterações, cálculos, deleções no banco de dados. 
+-- Enfim, procedimentos dentro do banco de dados
+
+--	SINTAXE
+-- Create ou replace procedure prc_nome
+--(
+--   p_param1 in number,
+--   p_param2 in varchar2
+-- ) IS
+-- Cursor...(opcional) begin.. end;
+
+-- Para executar a procedure: exec prc_nome (1, 'teste'); PARÂMETROS DEVEM SER COLOCADOS NA MESMA ORDEM.
+
+--EXEMPLO: Insere dados na tabela Cidade.
+--Create or replace procedure prc_Cidade
+--(
+--  p_cod in number,
+--  p_nome in varchar,
+--  p_uf in varchar,
+-- P_pais in varchar
+--) IS
+--begin
+-- insert into Cidade (cod_cidade, nome_cidade, uf, pais) values
+-- (p_cod, p_nome_, p_uf, p_pais);
+--end;
+--exec prc_cidade(100,'São Paulo','SP','Brasil');
+--exec prc_cidade(101,'Rio de Janeiro','RJ','Brasil');
+
+CREATE TABLE PESSOA
+(
+    id_pessoa integer,
+    nome varchar2(20),
+    cpf varchar2(14)
+);
+
+Insert into Pessoa values(1,'Eliézio Mesquita','11109865424');
+Insert into Pessoa values(2,'Maria Joaquina','93104465334');
+Insert into Pessoa values(3,'José da Silva','14109835424');
+
+--EXERCÍCIO 1: Faça uma procedure para deletar uma pessoa da tabela pessoa. 
+--Passe como parâmetro o código da pessoa.
+create or replace procedure prc_pessoa
+(
+    p_id in number
+)IS
+begin
+delete from Pessoa where id_Pessoa=p_id;
+end;
+
+exec prc_pessoa(3);
+
+select*from Pessoa;
+
+-------------------------------------------------------------------------------------------------------------------
+CREATE TABLE Cidade (
+  Cod_Cidade INTEGER   NOT NULL ,
+  Nome_Cidade VARCHAR(40)   NOT NULL ,
+  UF VARCHAR(2)    ,
+  País VARCHAR(75)   NOT NULL   ,
+PRIMARY KEY(Cod_Cidade));
+
+Insert into CIDADE (COD_CIDADE,NOME_CIDADE,UF,PAÍS) values ('1','Campo Bom','RS','Brasil');
+Insert into CIDADE (COD_CIDADE,NOME_CIDADE,UF,PAÍS) values ('2','São Leopoldo','RS','Brasil');
+Insert into CIDADE (COD_CIDADE,NOME_CIDADE,UF,PAÍS) values ('3','São Paulo','SP','Brasil');
+
+--EXERCÍCIO 2: Faça uma procedure para inserir ou deletar uma cidade.
+--então, além dos parâmetros código da cidade, nome, uf e país, é necessário o tipo de movimento.
+-- I - Insert, D-Delete
+create or replace procedure prc_cidade
+(
+    p_cod in number,
+    p_nome in varchar,
+    p_uf in varchar,
+    p_pais in varchar,
+    p_tipomovimento in varchar
+)IS
+begin
+if UPPER (p_tipomovimento)='I' then
+
+    insert into Cidade (cod_cidade, nome_cidade, uf, país) values
+    (p_cod, p_nome, p_uf, p_pais);
+end if;
+
+if UPPER (p_tipomovimento)='D' then
+	delete from Cidade where cod_cidade=p_cod;
+end if;
+end;
+
+exec prc_cidade (2,'São Leopoldo','RS', 'Brasil', 'D'); -- Deletei são Leopoldo
+exec prc_cidade (2,'São Leopoldo','RS', 'Brasil', 'I'); -- Inclui novamente
+select*from Cidade;
+
+-----------------------------------------------------------------------------------------------------------------------
+create table empresa
+(cod_empresa number(3) not null,
+nome_empresa varchar2 (150) not null,
+nome_fantasia varchar2(150),
+data_abertura date not null,
+cnpj varchar2(45) not null,
+constraint empresa_pk primary key (cod_empresa));
+
+insert into empresa values (1,'JNC' , 'Janelas e Esquadrias JNC', to_date('01/01/2014','dd/mm/rrrr'), '98977668868');
+insert into empresa values (2,'Bartiole' , 'Hipermercado Bartiole', to_date('01/01/2013','dd/mm/rrrr'), '45677776677');
+insert into empresa values (3,'Gerda' , 'Gerda Marmitaria e Cia', to_date('01/03/2014','dd/mm/rrrr'), '000987990099');
+insert into empresa values (4,'Montanhismo AG' , 'Montanhismno Agência de Viagens', to_date('12/03/2014','dd/mm/rrrr'), '98977668868');
+
+create table departamento
+(cod_departamento number(3) not null, 
+cod_empresa number(3) not null,
+descricao_departamento varchar2(100) not null,
+constraint departamento_pk primary key (cod_departamento),
+constraint depto_empresa_fk foreign key (cod_empresa) references empresa(cod_empresa)
+);
+
+insert into departamento values (1, 1, 'RH');
+insert into departamento values (2, 1, 'Financeiro');
+insert into departamento values (3, 1, 'Vendas');
+insert into departamento values (4, 1, 'Produção ');
+insert into departamento values (5, 1, 'Marketing');
+insert into departamento values (6, 2, 'RH');
+insert into departamento values (7, 2, 'Produção');
+insert into departamento values (8, 2, 'Vendas');
+insert into departamento values (9, 3, 'RH');
+insert into departamento values (10, 3, 'Vendas');
+insert into departamento values (11, 4, 'RH');
+insert into departamento values (12, 4, 'Financeiro');
+
+select*from departamento;
+
+CREATE TABLE FUNCIONARIO
+( COD_FUNCIONARIO NUMBER(5,0),
+NOME_FUNCIONARIO VARCHAR2(100),
+COD_DEPARTAMENTO NUMBER(3,0),
+COD_EMPRESA NUMBER(3,0),
+DATA_CADASTRO DATE,
+DATA_NASCIMENTO DATE,
+constraint funcionario_pk primary key (cod_funcionario),
+constraint funcionario_depto_fk foreign key (cod_departamento) references departamento(cod_departamento),
+constraint funcionario_empresa_fk foreign key (cod_empresa) references empresa(cod_empresa) );
+
+insert into funcionario values (1, 'Joao da Silva Sauro', 1, 1, to_date( '01/01/2013','dd/mm/rrrr'), to_date('21/01/1980','dd/mm/rrrr'));
+insert into funcionario values (2, 'Maria da Luz Cardoso', 3, 1, to_date('01/03/2013','dd/mm/rrrr'), to_date('10/01/1988','dd/mm/rrrr'));
+insert into funcionario values (3, 'Joao da Silva Sauro', 2, 1, to_date('01/01/2011','dd/mm/rrrr'), to_date('01/04/2005','dd/mm/rrrr'));
+insert into funcionario values (4, 'Pedro Alcântara', 1, 1, to_date('01/03/2013','dd/mm/rrrr'), to_date('01/03/1999','dd/mm/rrrr'));
+insert into funcionario values (5, 'Joao da Silva Sauro', 1, 1,to_date( '01/01/2013','dd/mm/rrrr'), to_date('01/01/1981','dd/mm/rrrr'));
+insert into funcionario values (6, 'Armando Silva', 6, 2, to_date('01/01/2013','dd/mm/rrrr'), to_date('01/12/1987','dd/mm/rrrr'));
+insert into funcionario values (7, 'Joao Alves', 6, 2, to_date('10/09/2013','dd/mm/rrrr'), to_date('22/11/1990','dd/mm/rrrr'));
+insert into funcionario values (8, 'Pedro Mariano', 7, 2, to_date('21/09/2012','dd/mm/rrrr'), to_date('01/01/1910','dd/mm/rrrr'));
+insert into funcionario values (9, 'Wilison Azevedo Moura', 8, 2, to_date('01/09/2013','dd/mm/rrrr'), to_date('15/08/1989','dd/mm/rrrr'));
+insert into funcionario values (10, 'Oscar Lorosa de Marco', 8, 2, to_date('01/01/2014','dd/mm/rrrr'), to_date('11/11/1975','dd/mm/rrrr'));
+insert into funcionario values (11, 'Uelington Morgan Frietzviller', 9, 3, to_date('01/10/2013','dd/mm/rrrr'), to_date('01/07/1986','dd/mm/rrrr'));
+insert into funcionario values (12, 'Maria Joaquim Barboa Alvino', 9, 3, to_date('12/11/2013','dd/mm/rrrr'), to_date('11/07/1986','dd/mm/rrrr'));
+insert into funcionario values (13, 'Oscalina Moriati Alavan', 10, 3, to_date('01/01/2013','dd/mm/rrrr'), to_date('01/01/1988','dd/mm/rrrr'));
+insert into funcionario values (14, 'Portinari Muri Per Si', 10, 3, to_date('01/12/2013','dd/mm/rrrr'), to_date('01/10/1981','dd/mm/rrrr'));
+insert into funcionario values (15, 'Carlos Henrique Motz',11, 4, to_date('11/08/2013','dd/mm/rrrr'), to_date('01/01/1997','dd/mm/rrrr'));
+insert into funcionario values (16, 'Wilison Morta de Si', 12, 4, to_date('12/08/2013','dd/mm/rrrr'), to_date('12/07/1998','dd/mm/rrrr'));
+
+
+-- EXERCÍCIO 3: Adicione um campo a tabela departamento: alter table Departamento ADD qtd_funcionario number(4);
+-- Faça uma procedure que preencha esse campo (qtd_funcionario) com a quantidade de funcionários do departamento.
+--Passe como parâmetro o código do departamento
+
+alter table Departamento ADD qtd_funcionario number(4)
+    
+create or replace procedure prc_departamento
+(
+    p_coddep in number
+)IS
+begin
+Update departamento set qtd_funcionario =
+(select count (*) from funcionario where funcionario.cod_departamento = departamento.cod_departamento)
+where departamento.cod_departamento = p_coddep;
+end;
+
+select count (*) from funcionario where funcionario.cod_departamento=1; -- Apenas para conferir.
+
+exec prc_departamento(1);
+
+select*from departamento;
+
+--EXERCÍCIO 4: Faça uma procedure que insira, altere e delete departamentos.
+create or replace procedure prc_depto
+(
+    p_cod_depto in number,
+    p_cod_empresa in number,
+    p_descricao in varchar,
+    p_qtd_funcionario in number,
+    p_tipomov in varchar
+)IS
+begin
+if UPPER (p_tipomov)='I' then
+insert into departamento (cod_departamento, cod_empresa, descricao_departamento, qtd_funcionario)
+values (p_cod_depto, p_cod_empresa, p_descricao, p_qtd_funcionario);
+end if;
+
+if UPPER (p_tipomov)='D' then
+delete from departamento where cod_departamento=p_cod_depto;
+end if;
+
+if UPPER (p_tipomov)='A' then
+update departamento set cod_empresa = p_cod_empresa, descricao_departamento = p_descricao , qtd_funcionario = p_qtd_funcionario
+where departamento.cod_departamento = p_cod_depto;
+end if;
+
+end;
+
+select * from departamento;
+exec prc_depto(100,1,'teste',0, 'I');
+exec prc_depto (100,1,'teste novo',0, 'U');
+exec prc_depto (100,2,'teste novo',0, 'D');
