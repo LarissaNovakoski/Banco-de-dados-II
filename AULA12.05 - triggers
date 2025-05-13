@@ -1,0 +1,112 @@
+CREATE TABLE ORCAMENTO
+(   COD_ORCAMENTO NUMBER(10,0),
+    DATA_ORCAMENTO DATE,
+    VALOR_ORCAMENTO NUMBER(12,2),
+    COD_PESSOA NUMBER(7,0),
+    DATA_VALIDADE_ORCAMENTO DATE
+);
+
+
+insert into orcamento values (1, to_date('20/10/2021','dd/mm/rrrr'), 100, 1, to_date('20/10/2021','dd/mm/rrrr')+10);
+select*from orcamento;
+
+update orcamento set valor_orcamento = -3
+where cod_orcamento = 1;
+
+
+create or replace trigger trg_orcamento
+
+before insert or update on orcamento
+for each row
+begin
+    if :new.valor_orcamento <0 then
+	raise_application_error(-20200, 'Não é possível inserir registro com valor negativo!');
+	end if;
+end;
+
+
+create table salario
+( cod_funcionario number(5) not null,
+data_salario date not null,
+valor_salario number(12,2) not null
+);
+
+insert into salario values (1, to_date( '01/01/2013','dd/mm/rrrr'), 1000);
+insert into salario values (2, to_date( '01/01/2014','dd/mm/rrrr'), 2000);
+insert into salario values (1, to_date( '01/01/2015','dd/mm/rrrr'), 3000);
+
+CREATE TABLE PESSOA (
+  id_PESSOA NUMERIC(10) NOT NULL,
+  NOME VARCHAR(150) NOT NULL,
+  data_nasc date
+);
+
+ALTER TABLE pessoa
+ADD data_cadastro DATE; 
+
+insert into PESSOA values (1, 'Larissa',to_date('19/06/2001','dd/mm/rrrr'),to_date('01/01/2014','dd/mm/rrrr'));
+insert into PESSOA values (2, 'Tatiana', to_date('01/01/2014','dd/mm/rrrr'),to_date('13/05/2025','dd/mm/rrrr'));
+insert into PESSOA values (2, 'Bruna', to_date('13/05/2025','dd/mm/rrrr'),to_date('19/06/2001','dd/mm/rrrr'));
+
+--EXERCÍCIO 1: Usando a tabela salário não permita que registros sejam apagados.
+create or replace trigger salarios
+
+before delete on salario
+for each ROW
+BEGIN
+    raise_application_error(-20001, 'Não é autorizada a exclusão de registros!');
+end;
+
+delete from salario where COD_FUNCIONARIO = 2;
+
+--EXERCÍCIO 2: Usando a tabela pessoa, a data de nascimento deve ser maior ou igual a hoje. (if :new.data_nasc<trunc(Sysdate) then...raise...end if;)
+create or replace trigger data_nasc
+
+before insert on pessoa
+for each ROW
+BEGIN
+    if :new.data_nasc<trunc(Sysdate) THEN
+    raise_application_error(-20011, 'Data de nascimento inválida!');
+    end if;
+end;
+
+--EXERCÍCIO 3: Na tabela pessoa, a data de cadastro deve ser maior ou igual a de hoje.
+create or replace trigger data_cadastros
+
+before insert on pessoa
+for each ROW
+BEGIN
+    if :new.data_cadastro<trunc(Sysdate) THEN
+    raise_application_error(-20011, 'Data de cadastro inválida!');
+    end if;
+end;
+
+-----------------------------------------------------------------------------------------------------------
+--OBS: Tabelas Log são utilizadas para guardar informações retiradas de outras tabelas.
+--EXERCÍCIO 4: Crie uma tabela Log (as tabelas log não tem PK). Usando a tabela salário, copie todas as informações DML
+--para a tabela log.
+create table logui
+(
+    mensagem VARCHAR2(100),
+    usuario VARCHAR2(50),
+    data_mov DATE,
+    tp_mov VARCHAR2(1)
+);
+
+
+create or replace trigger trg_salario
+before insert or update or delete on salario
+for each row
+BEGIN 
+    if inserting then
+    insert into logui values (:new.cod_funcionario ||' '||:new.valor_salario, user, sysdate, 'I');
+    end if;
+
+    if updating then
+    insert into logui values (:new.cod_funcionario ||' '||:new.valor_salario, user, sysdate, 'U');
+    end if;
+
+    if deleting then
+    insert into logui values (:new.cod_funcionario ||' '||:new.valor_salario, user, sysdate, 'D');
+    end if;
+end;
